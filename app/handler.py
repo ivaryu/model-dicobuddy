@@ -265,7 +265,7 @@ async def handle_query(
 
         result = {
             "ok": True,
-            "reply": f"Berikut rekomendasi kelas untuk {desired_role}:",
+            "response": f"Berikut rekomendasi kelas untuk {desired_role}:",
             "intent": {"mode": "course_recommendation"},
             "meta": {"courses": recommended},
             "profile_update": {},
