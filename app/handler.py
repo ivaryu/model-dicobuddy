@@ -18,7 +18,7 @@ from .detect_jobrole import detect_job_role, JOB_ROLE_KEYWORDS
 from .roadmap_json_engine import generate_roadmap_response
 from .config import BACKEND_URL, SECRET
 from .micro_confirm import detect_confirmation_micro
-from app.runtime import load_runtime
+from .runtime import load_runtime
 
 from groq import Groq
 import os
