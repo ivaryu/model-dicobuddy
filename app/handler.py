@@ -528,7 +528,11 @@ ROLE_LEARNING_PATH = {
     "Gen AI Engineer": 9,
     "DevOps Engineer": 6
 }
+MAX_RESPONSE_TIME = 8.0  # seconds
 
+def _time_exceeded(start, limit=MAX_RESPONSE_TIME):
+    return (time.time() - start) > limit
+    
 async def handle_query(
     user_id: str,
     text: str,
@@ -536,6 +540,7 @@ async def handle_query(
     topk: int = DEFAULT_TOPK
 ) -> Dict[str, Any]:
     try:
+        
         rt = load_runtime()
 
         kb = rt["kb"]
@@ -568,6 +573,7 @@ async def handle_query(
     extracted_update = {}
     
     try:
+        START_TIME = time.time()
         if not text:  # Now safe to check
             return {"response": "Pesan tidak boleh kosong."}
 
@@ -981,6 +987,19 @@ async def handle_query(
         # Only use KB for general queries
         if not personal:
             try:
+                if _time_exceeded(START_TIME):
+                    return {
+                        "ok": True,
+                        "response": "Saya sedang memproses jawaban kamu. Mohon tunggu sebentar.",
+                        "reply": "Saya sedang memproses jawaban kamu. Mohon tunggu sebentar.",
+                        "intent": {"mode": "processing"},
+                        "sources": [],
+                        "meta": {
+                            "deferred": True,
+                            "reason": "timeout_guard"
+                        },
+                        "profile_update": {}
+                    }
                 q_emb = rt["model"].encode([text], normalize_embeddings=True).astype("float32")
                 D, I = rt["index"].search(q_emb, topk)
                 rows = rt["kb"].iloc[I[0]]
@@ -998,6 +1017,19 @@ async def handle_query(
         if kb_context:
             user_prompt += f"\n\nReferences:\n{kb_context}"
 
+        if _time_exceeded(START_TIME):
+            return {
+                "ok": True,
+                "response": "Saya sedang menyusun jawaban terbaik untuk kamu.",
+                "reply": "Saya sedang menyusun jawaban terbaik untuk kamu.",
+                "intent": {"mode": "processing"},
+                "sources": [],
+                "meta": {
+                    "deferred": True,
+                    "reason": "timeout_guard"
+                },
+                "profile_update": {}
+            }
         # LLM call
         reply = call_llama(system, user_prompt)
 
