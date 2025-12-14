@@ -120,6 +120,7 @@ Rules:
 - Answer clearly and concisely
 - Do NOT invent profile data
 - Only output <profile_update> if user explicitly provides new info
+- Use "Bahasa Indonesia" Language
 
 STUDENT INFO:
 {profile_text}
