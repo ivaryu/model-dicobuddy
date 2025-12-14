@@ -1,21 +1,31 @@
-# ---- PyTorch CPU ONLY (WAJIB PALING ATAS)
+# ===============================
+# PyTorch CPU ONLY (WAJIB PALING ATAS)
+# ===============================
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2+cpu
+torch==2.5.1+cpu
 
-# ---- Web
+# ===============================
+# Web API
+# ===============================
 fastapi
 uvicorn[standard]
 pydantic
 
-# ---- Database
+# ===============================
+# Database
+# ===============================
 sqlalchemy
 psycopg[binary]
 
-# ---- HTTP & Scheduler
+# ===============================
+# HTTP & Scheduler
+# ===============================
 requests
 apscheduler
 
-# ---- ML / Vector
+# ===============================
+# ML / Vector
+# ===============================
 numpy
 pandas
 scikit-learn
@@ -24,10 +34,14 @@ sentence-transformers
 faiss-cpu
 regex
 
-# ---- Data IO (HEAVY — keep only if really used at runtime)
+# ===============================
+# Data IO (HEAVY)
+# ===============================
 openpyxl
 pyarrow
 fastparquet
 
-# ---- LLM API
+# ===============================
+# LLM API
+# ===============================
 groq
