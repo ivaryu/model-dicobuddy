@@ -17,4 +17,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localho
 # Server settings
 DEFAULT_TOPK = int(os.getenv("DEFAULT_TOPK", "5"))
 SECRET= "secret-profile"
-BACKEND_URL= "/api/profile/apply-patch"
+BACKEND_URL= os.getenv(
+    "BACKEND_PROFILE_ENDPOINT",
+    "/api/profile/apply-patch"
+)
