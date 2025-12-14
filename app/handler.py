@@ -140,12 +140,6 @@ def extract_goal_from_assistant_history(profile: Dict) -> list:
 
 client = Groq(api_key=GROQ_API_KEY)
 
-_kb = None
-_index = None
-_model = None
-_intent = None
-
-
 def _ensure_loaded():
     """Lazy load artifacts once."""
     global _kb, _index, _model, _intent
