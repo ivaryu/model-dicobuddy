@@ -1,8 +1,13 @@
 # ===============================
-# PyTorch CPU ONLY (WAJIB PALING ATAS)
+# PyTorch CPU ONLY
 # ===============================
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.5.1+cpu
+
+# ===============================
+# NumPy (PIN — WAJIB)
+# ===============================
+numpy<2
 
 # ===============================
 # Web API
@@ -12,10 +17,10 @@ uvicorn[standard]
 pydantic
 
 # ===============================
-# Database
+# Database (SQLAlchemy + psycopg2)
 # ===============================
 sqlalchemy
-psycopg[binary]
+psycopg2-binary
 
 # ===============================
 # HTTP & Scheduler
@@ -26,7 +31,6 @@ apscheduler
 # ===============================
 # ML / Vector
 # ===============================
-numpy
 pandas
 scikit-learn
 joblib
@@ -35,7 +39,7 @@ faiss-cpu
 regex
 
 # ===============================
-# Data IO (HEAVY)
+# Data IO (optional, heavy)
 # ===============================
 openpyxl
 pyarrow
