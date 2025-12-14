@@ -18,6 +18,7 @@ from .detect_jobrole import detect_job_role, JOB_ROLE_KEYWORDS
 from .roadmap_json_engine import generate_roadmap_response
 from .config import BACKEND_URL, SECRET
 from .micro_confirm import detect_confirmation_micro
+from app.runtime import load_runtime
 
 from groq import Groq
 import os
@@ -139,6 +140,7 @@ def extract_goal_from_assistant_history(profile: Dict) -> list:
 
 
 client = Groq(api_key=GROQ_API_KEY)
+
 
 def _ensure_loaded():
     """Lazy load artifacts once."""
@@ -1049,7 +1051,14 @@ async def handle_query(
             #             }
             #         }
             #     }
-        
+        rt = load_runtime()
+
+        kb = rt["kb"]
+        index = rt["index"]
+        model = rt["model"]
+        intent_pipe = rt["intent"]
+        skill_titles = rt["skill_titles"]
+        skill_embeddings = rt["skill_embeddings"]
         start = time.time()
 
         # Profile to string
