@@ -206,38 +206,6 @@ def background_warmup():
             traceback.print_exc()
 
 # ============================
-# LIFESPAN EVENT HANDLER
-# ============================
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Handle startup and shutdown events"""
-    # STARTUP
-    print("[STARTUP] 🚀 FastAPI application starting...")
-    print("[STARTUP] 🔥 Launching background model warmup...")
-    
-    thread = threading.Thread(
-        target=background_warmup,
-        daemon=True,
-        name="ModelWarmupThread"
-    )
-    thread.start()
-    
-    print("[STARTUP] ✅ Background warmup thread started")
-    
-    yield
-    
-    # SHUTDOWN
-    print("[SHUTDOWN] 👋 Application shutting down...")
-
-# ============================
-# FASTAPI APP WITH LIFESPAN
-# ============================
-app = FastAPI(
-    title="Learning Buddy ML Backend",
-    lifespan=lifespan
-)
-
-# ============================
 # ENTRYPOINT
 # ============================
 if __name__ == "__main__":
