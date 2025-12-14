@@ -111,3 +111,8 @@ async def chat(req: ChatReq):
         print("REAL ERROR:", repr(e))
         traceback.print_exc()
         return {"ok": False, "detail": str(e)}
+
+@app.on_event("startup")
+def warmup():
+    from app.runtime import load_runtime
+    load_runtime()
