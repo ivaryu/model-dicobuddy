@@ -720,7 +720,6 @@ async def handle_query(
                         break
             # Jika tetap tidak ketemu → minta user pilih job_role
             if not job_role:
-                time.sleep(0.5)
                 return {
                     "response": "Saya tidak dapat menentukan learning path anda Anda berdasarkan pesan yang anda berikan dan course aktif. Anda ingin roadmap untuk learning path apa? (Contoh: Front-End Web Developer, Back-End Developer, Android Developer)",
                     "intent": {"mode": "ask_job_role"},
@@ -787,7 +786,6 @@ async def handle_query(
 
 
             # Kembalikan response tanpa LLM
-            time.sleep(2)
             # ============================================================
             # SEND PATCH TO BACKEND WEB (server-to-server)
             # ============================================================
@@ -1057,7 +1055,7 @@ async def handle_query(
             #             }
             #         }
             #     }
-        _ensure_loaded()
+        
         start = time.time()
 
         # Profile to string
