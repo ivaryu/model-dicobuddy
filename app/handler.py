@@ -1019,20 +1019,25 @@ async def handle_query(
 
         if _time_exceeded(START_TIME):
             return {
-                "ok": True,
-                "response": "Saya sedang menyusun jawaban terbaik untuk kamu.",
-                "reply": "Saya sedang menyusun jawaban terbaik untuk kamu.",
-                "intent": {"mode": "processing"},
+                "response": "Maaf, model sedang tidak tersedia saat ini.",
+                "intent": {"mode": "timeout"},
                 "sources": [],
-                "meta": {
-                    "deferred": True,
-                    "reason": "timeout_guard"
-                },
+                "meta": {"timeout": True},
                 "profile_update": {}
             }
+        
         # LLM call
-        reply = call_llama(system, user_prompt)
-
+        try:
+            reply = call_llama(system, user_prompt)
+        except Exception as e:
+            print(f"LLM call failed: {e}")
+            return {
+                "response": "Maaf, saya sedang mengalami kendala teknis.",
+                "intent": {"mode": "error"},
+                "sources": [],
+                "meta": {"error": str(e)},
+                "profile_update": {}
+            }
         latency = int((time.time() - start) * 1000)
 
         # Logging only (stateless)
