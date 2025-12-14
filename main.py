@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.handler import handle_query, handle_job_description_flow
 import traceback
 import os
+import threading
 
 
 app = FastAPI(title="Learning Buddy ML Backend (MVP)")
@@ -112,7 +113,19 @@ async def chat(req: ChatReq):
         traceback.print_exc()
         return {"ok": False, "detail": str(e)}
 
+def background_warmup():
+    try:
+        print("[WARMUP] Background runtime warmup started...")
+        from app.runtime import load_runtime
+        load_runtime()
+        print("[WARMUP] Background runtime warmup completed")
+    except Exception:
+        print("[WARMUP] Background runtime warmup FAILED")
+        raise
+
 @app.on_event("startup")
-def warmup():
-    from app.runtime import load_runtime
-    load_runtime()
+def start_background_warmup():
+    threading.Thread(
+        target=background_warmup,
+        daemon=True
+    ).start()
