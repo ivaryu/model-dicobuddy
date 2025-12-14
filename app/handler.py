@@ -120,7 +120,7 @@ Rules:
 - Answer clearly in Bahasa Indonesia unless user explicitly asks otherwise.
 - Do NOT invent profile data.
 - Backend always sends full profile each request.
-- You MAY output <profile_update>{JSON}</profile_update> ONLY if user explicitly provides new information.
+- You MAY output <profile_update>JSON</profile_update> ONLY if user explicitly provides new information.
 - Do NOT output unknown fields, null values, created_at, or updated_at.
 
 Profile update schema (STRICT):
