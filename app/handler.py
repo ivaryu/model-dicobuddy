@@ -27,26 +27,6 @@ import os
 # ============================================================
 # MODEL CLIENT
 # ============================================================
-def is_confirmation_for_course_rec(text: str, profile: Dict) -> bool:
-    """Detect confirmation response for course recommendation"""
-    if not text:
-        return False
-    
-    text_lower = text.lower()
-    
-    confirmation_words = ["ya", "iya", "ok", "oke", "baik", "betul", "gunakan", "pakai", "lanjut"]
-    has_confirmation = any(word in text_lower for word in confirmation_words)
-    
-    has_path_context = any(word in text_lower for word in ["path", "learning", "itu"])
-    has_stored_role = bool(profile.get("roadmap_progress", {}).get("job_role"))
-    
-    # Short confirmation without context
-    is_short_confirm = text_lower.strip() in ["ya", "iya", "ok", "oke", "baik"]
-    
-    return has_stored_role and (
-        (has_confirmation and has_path_context) or 
-        is_short_confirm
-    )
 
 CONFIRMATION_RE = re.compile(
     r'\b(ya|iya|ok|oke|baik|lanjut|setuju|mulai dari awal|aku mau|saya mau|betul)\b',
@@ -141,81 +121,9 @@ def extract_goal_from_assistant_history(profile: Dict) -> list:
 
 client = Groq(api_key=GROQ_API_KEY)
 
-
-def _ensure_loaded():
-    """Lazy load artifacts once."""
-    global _kb, _index, _model, _intent
-
-    if _kb is None:
-        _kb = load_kb()
-
-    if _index is None:
-        _index = load_faiss()
-
-    if _model is None:
-        _model = get_model(SBERT_MODEL_PATH)
-
-    if _intent is None:
-        intent_path = os.path.join(
-            os.path.dirname(__file__), "artifacts", "intent_pipe.joblib"
-        )
-        _intent = IntentPipeline(path=intent_path)
-    
-    if _skill_embeddings is None:
-        init_skill_library()
-
-
 # ============================================================
 # SKILL MATCHING (via KB)
 # ============================================================
-_skill_titles = []
-_skill_embeddings = None
-
-def init_skill_library():
-    global _skill_titles, _skill_embeddings
-
-    try:
-        # Ambil semua KB title sebagai kandidat skill
-        titles = []
-        for _, row in _kb.iterrows():
-            t = row.get("title")
-            if t and isinstance(t, str):
-                titles.append(t.strip())
-
-        _skill_titles = titles
-        if titles:
-            _skill_embeddings = _model.encode(
-                titles, normalize_embeddings=True
-            ).astype("float32")
-            print(f"[SKILL LIB] Loaded {len(titles)} skill candidates")
-        else:
-            print("[SKILL LIB] No skills loaded")
-
-    except Exception as e:
-        print("ERROR init_skill_library:", e)
-        
-
-def infer_skill_from_kb(text: str):
-    """Return closest skill from KB if similarity > 0.60"""
-    if not text or _skill_embeddings is None:
-        return None
-
-    try:
-        emb = _model.encode([text], normalize_embeddings=True).astype("float32")
-        scores = np.dot(_skill_embeddings, emb.T).squeeze()
-
-        top_idx = int(np.argmax(scores))
-        top_score = float(scores[top_idx])
-
-        if top_score < 0.60:  # threshold
-            return None
-
-        return _skill_titles[top_idx]
-
-    except Exception as e:
-        print("ERROR infer_skill_from_kb:", e)
-        return None
-
 
 def infer_skill_level(text: str):
     t = text.lower()
@@ -449,7 +357,7 @@ def format_profile_for_llm(profile: Dict[str, Any]) -> str:
         traceback.print_exc()
         return "Profile formatting error."
 
-def detect_course_recommendation(text: str) -> bool:
+def detect_course_recommendation(text: str, model=None) -> bool:
     """
     Multi-stage detection:
     1. Exact keyword match (fastest)
@@ -491,7 +399,7 @@ def detect_course_recommendation(text: str) -> bool:
             return True
     
     # Stage 3: Semantic similarity (optional, if model loaded)
-    if _model is not None:
+    if model is not None:
         try:
             ref_queries = [
                 "rekomendasikan kelas untuk saya",
@@ -499,8 +407,8 @@ def detect_course_recommendation(text: str) -> bool:
                 "saya butuh saran course"
             ]
             
-            query_emb = _model.encode([text], normalize_embeddings=True).astype("float32")
-            ref_embs = _model.encode(ref_queries, normalize_embeddings=True).astype("float32")
+            query_emb = model.encode([text], normalize_embeddings=True).astype("float32")
+            ref_embs = model.encode(ref_queries, normalize_embeddings=True).astype("float32")
             
             scores = np.dot(ref_embs, query_emb.T).squeeze()
             max_score = float(np.max(scores))
@@ -621,30 +529,6 @@ ROLE_LEARNING_PATH = {
     "DevOps Engineer": 6
 }
 
-def is_confirmation_for_course_rec(text: str, profile: Dict) -> bool:
-    """
-    Detect if user is confirming to use stored role for course recommendation
-    """
-    if not text:
-        return False
-    
-    text_lower = text.lower()
-    
-    # Confirmation keywords
-    confirmation_words = [
-        "ya", "iya", "ok", "oke", "baik", "betul", "benar",
-        "gunakan", "pakai", "lanjut", "setuju"
-    ]
-    
-    has_confirmation = any(word in text_lower for word in confirmation_words)
-    
-    # Context: mentions "learning path" or "path"
-    has_path_context = any(word in text_lower for word in ["path", "learning path", "itu"])
-    
-    # User has stored role
-    has_stored_role = bool(profile.get("roadmap_progress", {}).get("job_role"))
-    
-    return has_confirmation and (has_path_context or text_lower in ["ya", "iya", "ok", "oke"]) and has_stored_role
 async def handle_query(
     user_id: str,
     text: str,
@@ -652,6 +536,14 @@ async def handle_query(
     topk: int = DEFAULT_TOPK
 ) -> Dict[str, Any]:
     try:
+        rt = load_runtime()
+
+        kb = rt["kb"]
+        index = rt["index"]
+        model = rt["model"]
+        intent_pipe = rt["intent"]
+        skill_titles = rt["skill_titles"]
+        skill_embeddings = rt["skill_embeddings"]
 
         # Handle text input
         if text is None:
@@ -843,7 +735,8 @@ async def handle_query(
             }
 
         # 2) DETEKSI apakah user memang meminta rekomendasi kelas
-        is_course_request = detect_course_recommendation(text)
+     
+        is_course_request = detect_course_recommendation(text, model)
 
         # 3) Jika user TIDAK minta rekomendasi kelas → lanjut ke LLM
         if not is_course_request and not confirmed_yes:
@@ -1051,14 +944,7 @@ async def handle_query(
             #             }
             #         }
             #     }
-        rt = load_runtime()
-
-        kb = rt["kb"]
-        index = rt["index"]
-        model = rt["model"]
-        intent_pipe = rt["intent"]
-        skill_titles = rt["skill_titles"]
-        skill_embeddings = rt["skill_embeddings"]
+        
         start = time.time()
 
         # Profile to string
@@ -1078,7 +964,7 @@ async def handle_query(
         # print("=================================")
         # Intent detection (read only)
         try:
-            intent = _intent.predict(text)
+            intent = rt["intent"].predict(text)
         except Exception:
             intent = {"mode": "default"}
 
@@ -1097,9 +983,9 @@ async def handle_query(
         # Only use KB for general queries
         if not personal:
             try:
-                q_emb = _model.encode([text], normalize_embeddings=True).astype("float32")
-                D, I = _index.search(q_emb, topk)
-                rows = _kb.iloc[I[0]]
+                q_emb = rt["model"].encode([text], normalize_embeddings=True).astype("float32")
+                D, I = rt["index"].search(q_emb, topk)
+                rows = rt["kb"].iloc[I[0]]
 
                 kb_context = "\n\n".join(
                     f"[Info] {r['title']} - {r['text'][:300]}"
