@@ -1,18 +1,33 @@
+# ---- PyTorch CPU ONLY (WAJIB PALING ATAS)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+
+# ---- Web
 fastapi
+uvicorn[standard]
 pydantic
+
+# ---- Database
 sqlalchemy
+psycopg[binary]
+
+# ---- HTTP & Scheduler
 requests
 apscheduler
-joblib
-pandas
+
+# ---- ML / Vector
 numpy
+pandas
 scikit-learn
+joblib
 sentence-transformers
 faiss-cpu
 regex
+
+# ---- Data IO (HEAVY — keep only if really used at runtime)
 openpyxl
 pyarrow
 fastparquet
+
+# ---- LLM API
 groq
-uvicorn
-psycopg[binary]
