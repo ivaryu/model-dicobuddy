@@ -15,36 +15,6 @@ _is_ready = False
 _warmup_lock = threading.Lock()
 
 # ============================
-# BACKGROUND WARMUP
-# ============================
-def background_warmup():
-    global _is_ready
-    
-    with _warmup_lock:
-        try:
-            print("=" * 50)
-            print("[WARMUP] 🔄 Starting ML model warmup...")
-            print("=" * 50)
-            
-            from app.runtime import load_runtime
-            load_runtime()
-            
-            _is_ready = True
-            
-            print("=" * 50)
-            print("[WARMUP] ✅ ML models loaded successfully!")
-            print("[WARMUP] ✅ Service is now READY")
-            print("=" * 50)
-            
-        except Exception as e:
-            _is_ready = False
-            print("=" * 50)
-            print("[WARMUP] ❌ Model loading FAILED!")
-            print(f"[WARMUP] Error: {e}")
-            print("=" * 50)
-            traceback.print_exc()
-
-# ============================
 # LIFESPAN EVENT HANDLER
 # ============================
 @asynccontextmanager
