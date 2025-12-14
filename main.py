@@ -108,3 +108,6 @@ async def chat(req: ChatReq):
         print("=== outer handler crash ===")
         traceback.print_exc()
         return {"ok": False, "error": "server_crash", "detail": str(e)}
+        print("REAL ERROR:", repr(e))
+        traceback.print_exc()
+        return {"ok": False, "detail": str(e)}
