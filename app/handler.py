@@ -542,8 +542,6 @@ async def handle_query(
         index = rt["index"]
         model = rt["model"]
         intent_pipe = rt["intent"]
-        skill_titles = rt["skill_titles"]
-        skill_embeddings = rt["skill_embeddings"]
 
         # Handle text input
         if text is None:
