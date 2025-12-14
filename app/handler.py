@@ -301,3 +301,18 @@ async def handle_query(
 
     _cache_set(cache_key, result)
     return result
+
+def handle_job_description_flow(
+    user_id: str,
+    text: str,
+    profile: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """
+    Stub function to satisfy main.py import.
+    Job role handling is managed inside handle_query for MVP.
+    """
+    return {
+        "summary": "Job role flow handled via main chat.",
+        "roadmap": None,
+        "profile_update": {}
+    }
